@@ -1,0 +1,13 @@
+LANGUAGES   += c++
+COMPILEOPTS += -Wall
+COMPILEOPTS += -Wextra
+COMPILEOPTS += -Werror
+COMPILEOPTS += -std=c++0x
+COMPILEOPTS += -pedantic
+
+LANGUAGES   += bash
+
+GENERATE    += version.h
+
+BINARIES    += dreamer-par
+SOURCES     += main.c++
