@@ -10,4 +10,8 @@ LANGUAGES   += bash
 GENERATE    += version.h
 
 BINARIES    += dreamer-par
+COMPILEOPTS += `ppkg-config flo --cflags`
+LINKOPTS    += `ppkg-config flo --libs`
+COMPILEOPTS += `ppkg-config libdrasm --cflags`
+LINKOPTS    += `ppkg-config libdrasm --libs`
 SOURCES     += main.c++
