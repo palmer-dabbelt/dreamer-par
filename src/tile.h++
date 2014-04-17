@@ -29,18 +29,28 @@ class tile;
 #include <string>
 #include "operation.h++"
 #include "machine.h++"
+#include "cnode.h++"
 
 class tile: public libocn::node<tile>, public libdrasm::tile {
+private:
+    std::weak_ptr<tile> _self;
+
 public:
-    /* Creates a new tile by name. */
+    /* Creates a new tile by name.  Note that this actually consists
+     * of a pair of operations: one to create the shared pointer, and
+     * one to add the self-reference. */
     tile(const std::string& name, const std::shared_ptr<machine>& m);
+    void set_self_pointer(const std::shared_ptr<tile>& self);
 
     /* Places an operation on this tile, returning the cycle at which
      * this operation will be scheduled.  If "commit" is set to TRUE
      * then the result of this placement will actually be stored to
      * the machine, if FALSE then this just returns the cycle at which
      * this would be placed. */
-    ssize_t place(std::shared_ptr<operation> op, bool commit);
+    ssize_t place(const std::shared_ptr<operation>& op, bool commit);
+
+    /* Attempts to obtain access to a node. */
+    ssize_t obtain(const std::shared_ptr<cnode>& n, bool commit);
 };
 
 #endif

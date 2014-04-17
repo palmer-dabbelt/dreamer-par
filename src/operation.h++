@@ -22,19 +22,23 @@
 #ifndef OPERATION_HXX
 #define OPERATION_HXX
 
+class operation;
+
 #include <libflo/opcode.h++>
 #include <libflo/node.h++>
 #include <libflo/operation.h++>
-#include "node.h++"
+#include <libocn/node.h++>
+#include "tile.h++"
+#include "cnode.h++"
 
-class operation: public libflo::operation<node> {
-    friend class libflo::operation<node>;
+class operation: public libflo::operation<cnode> {
+    friend class libflo::operation<cnode>;
 
 private:
-    operation(std::shared_ptr<node>& dest,
+    operation(std::shared_ptr<cnode>& dest,
               const libflo::unknown<size_t>& width,
               const libflo::opcode& op,
-              const std::vector<std::shared_ptr<node>>& s);
+              const std::vector<std::shared_ptr<cnode>>& s);
 };
 
 #endif

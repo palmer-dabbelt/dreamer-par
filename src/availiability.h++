@@ -22,11 +22,20 @@
 #ifndef AVAILIABILITY_HXX
 #define AVAILIABILITY_HXX
 
+class availiability;
+
+#include "cnode.h++"
+#include "tile.h++"
+
 /* This manages the particular ways in which an node can be availiable
  * -- note that there's a whole bunch of special rules, so you
  * probably want to go about creating the sub-classes of this instead
  * as they've got those special rules. */
 class availiability {
+public:
+    ssize_t obtain(const std::shared_ptr<cnode>& node,
+                   const std::shared_ptr<tile>& tile,
+                   bool commit);
 };
 
 /*  */

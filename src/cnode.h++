@@ -22,21 +22,23 @@
 #ifndef NODE_HXX
 #define NODE_HXX
 
+class cnode;
+
 #include <list>
 #include <libflo/node.h++>
 #include "availiability.h++"
 
-class node: public libflo::node {
+class cnode: public libflo::node {
     friend class libflo::node;
 
 private:
-    /* Here's how we track the availiability of a node.  All nodes
+    /* Here's how we track the availiability of a cnode.  All cnodes
      * start out as unavailiable on every cycle, and the availiability
      * is filled in as the schedule is created. */
     std::list<std::shared_ptr<availiability>> _avail_list;
 
 private:
-    node(const std::string name,
+    cnode(const std::string name,
          const libflo::unknown<size_t>& width,
          const libflo::unknown<size_t>& depth,
          bool is_mem,

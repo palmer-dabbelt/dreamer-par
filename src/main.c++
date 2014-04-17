@@ -21,7 +21,7 @@
 
 #include "tile.h++"
 #include "machine.h++"
-#include "node.h++"
+#include "cnode.h++"
 #include "operation.h++"
 #include <libflo/flo.h++>
 
@@ -36,12 +36,14 @@ int main(int argc __attribute__((unused)),
         [&m](size_t x, size_t y) -> std::shared_ptr<tile> {
             char buffer[1024];
             snprintf(buffer, 1024, "(%lu,%lu)", x, y);
-            return std::make_shared<tile>(buffer, m);
+            auto sp = std::make_shared<tile>(buffer, m);
+            sp->set_self_pointer(sp);
+            return sp;
         }
         );
 
     /* Parse the flo file that we're going to PAR. */
-    auto f = libflo::flo<node, operation>::parse(argv[1]);
+    auto f = libflo::flo<cnode, operation>::parse(argv[1]);
 
     /* Walk through that Flo file and attempt a place-and-route. */
     for (const auto& op: f->operations()) {

@@ -21,10 +21,10 @@
 
 #include "operation.h++"
 
-operation::operation(std::shared_ptr<node>& dest,
+operation::operation(std::shared_ptr<cnode>& dest,
                      const libflo::unknown<size_t>& width,
                      const libflo::opcode& op,
-                     const std::vector<std::shared_ptr<node>>& s)
-    : libflo::operation<node>(dest, width, op, s)
+                     const std::vector<std::shared_ptr<cnode>>& s)
+    : libflo::operation<cnode>(dest, width, op, s)
 {
 }

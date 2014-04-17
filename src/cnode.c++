@@ -19,9 +19,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-#include "node.h++"
+#include "cnode.h++"
 
-node::node(const std::string name,
+cnode::cnode(const std::string name,
            const libflo::unknown<size_t>& width,
            const libflo::unknown<size_t>& depth,
            bool is_mem,
