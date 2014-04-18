@@ -33,7 +33,7 @@ int main(int argc __attribute__((unused)),
      * information that's necessary in order to describe a DREAMER
      * target. */
     std::shared_ptr<machine> m = std::make_shared<machine>(
-        1, 1,
+        4, 4,
         [&m](size_t x, size_t y) -> std::shared_ptr<tile> {
             char buffer[1024];
             snprintf(buffer, 1024, "(%lu,%lu)", x, y);
@@ -84,6 +84,7 @@ int main(int argc __attribute__((unused)),
 
     /* Walk through that Flo file and attempt a place-and-route. */
     size_t placed = 0;
+    size_t last = 0;
     for (const auto& op: f->operations()) {
 #ifdef PRINT_PLACEMENT
         if (op->op() != libflo::opcode::INIT) {
@@ -141,7 +142,12 @@ int main(int argc __attribute__((unused)),
 
         min_place->place(op, true);
         placed++;
+
+        if ((size_t)min_cycle > last)
+            last = min_cycle;
     }
+
+    printf("%lu\n", last);
 
     return 0;
 }

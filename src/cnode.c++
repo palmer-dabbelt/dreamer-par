@@ -46,6 +46,9 @@ ssize_t cnode::obtain(const std::shared_ptr<tile>& tile,
 
     for (const auto& a: _avail_list) {
         ssize_t cycle = a->obtain(tile, first_cycle, false);
+        if (cycle < 0)
+            continue;
+
         if ((best == NULL) || (best_cycle > cycle)) {
             best = a;
             best_cycle = cycle;

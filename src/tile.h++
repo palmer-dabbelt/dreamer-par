@@ -27,6 +27,7 @@ class tile;
 #include <libdrasm/tile.h++>
 #include <libocn/node.h++>
 #include <string>
+#include "avail_net.h++"
 #include "operation.h++"
 #include "machine.h++"
 #include "cnode.h++"

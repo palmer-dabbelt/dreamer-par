@@ -20,6 +20,7 @@
  */
 
 #include "avail_mem.h++"
+#include "tile.h++"
 
 avail_mem::avail_mem(size_t start_cycle, const std::weak_ptr<tile>& owner)
     : avail_reg(start_cycle, owner)

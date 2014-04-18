@@ -22,6 +22,7 @@
 #include "tile.h++"
 #include "avail_reg.h++"
 #include "avail_mem.h++"
+#include "avail_net.h++"
 #include <assert.h>
 
 tile::tile(const std::string& name, const std::shared_ptr<machine>& m)
@@ -67,7 +68,13 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
         if (commit) {
             use_instruction(c);
             allocate_register(c, true);
-            op->d()->make_availiable(std::make_shared<avail_reg>(c, _self));
+            op->d()->make_availiable(std::make_shared<avail_reg>(c,
+                                                                 _self
+                                         ));
+            op->d()->make_availiable(std::make_shared<avail_net>(c,
+                                                                 _self,
+                                                                 op->d()
+                                         ));
         }
 
         return c;
@@ -128,9 +135,10 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
                 target_cycle = cycle;
         }
 
-        /* Here we go and find a free instruction slot that's some
-         * time later than the earliest cycle that we've been able to
-         * find so far. */
+        /* It's possible that the suggested cycle is not valid because
+         * something else has been scheduled then.  Here we find a new
+         * instruction slot during which we can schedule this
+         * operation. */
         target_cycle = find_free_instruction(target_cycle);
 
         /* If they're all availiable, then actually commit to moving
@@ -157,6 +165,10 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
             allocate_register(target_cycle, commit);
             op->d()->make_availiable(std::make_shared<avail_reg>(target_cycle,
                                                                  _self));
+            op->d()->make_availiable(std::make_shared<avail_net>(target_cycle,
+                                                                 _self,
+                                                                 op->d()
+                                         ));
         }
 
         return target_cycle;

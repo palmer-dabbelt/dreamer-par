@@ -22,10 +22,10 @@
 #ifndef AVAILIABILITY_HXX
 #define AVAILIABILITY_HXX
 
-class availiability;
+class cnode;
+class tile;
 
-#include "cnode.h++"
-#include "tile.h++"
+#include <memory>
 #include <string>
 
 /* This manages the particular ways in which an node can be availiable

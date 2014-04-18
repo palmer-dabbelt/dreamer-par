@@ -20,6 +20,7 @@
  */
 
 #include "avail_reg.h++"
+#include "tile.h++"
 
 avail_reg::avail_reg(size_t start_cycle, const std::weak_ptr<tile>& owner)
     : _start_cycle(start_cycle),
@@ -40,14 +41,13 @@ ssize_t avail_reg::obtain(const std::shared_ptr<tile>& t,
 
     /* Registers can only be read by the tile that they're written
      * by. */
-    if (t->name() == _owner.lock()->name()) {
-        size_t first_availiable_cycle = _start_cycle + t->m()->alu_delay() + 1;
-        if (first_availiable_cycle < first_cycle)
-            return first_cycle;
-        return first_availiable_cycle;
-    }
+    if (t->name() != _owner.lock()->name())
+        return -1;
 
-    return -1;
+    size_t first_availiable_cycle = _start_cycle + t->m()->alu_delay() + 1;
+    if (first_availiable_cycle < first_cycle)
+        return first_cycle;
+    return first_availiable_cycle;
 }
 
 void avail_reg::deallocate(size_t end_cycle)
