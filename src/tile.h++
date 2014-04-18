@@ -49,8 +49,16 @@ public:
      * this would be placed. */
     ssize_t place(const std::shared_ptr<operation>& op, bool commit);
 
-    /* Attempts to obtain access to a node. */
-    ssize_t obtain(const std::shared_ptr<cnode>& n, bool commit);
+    /* Attempts to obtain access to a node.  This access must be
+     * performed after "first_cycle" which is the first cycle in which
+     * this computation can be completed. */
+    ssize_t obtain(const std::shared_ptr<cnode>& node,
+                   size_t target_cycle,
+                   bool commit);
+
+    /* Allocates a register, potientally spilling if need be. */
+    ssize_t allocate_register(size_t target_cycle,
+                              bool commit);
 };
 
 #endif

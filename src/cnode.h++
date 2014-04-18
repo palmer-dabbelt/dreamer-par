@@ -27,6 +27,7 @@ class cnode;
 #include <list>
 #include <libflo/node.h++>
 #include "availiability.h++"
+#include "tile.h++"
 
 class cnode: public libflo::node {
     friend class libflo::node;
@@ -37,13 +38,42 @@ private:
      * is filled in as the schedule is created. */
     std::list<std::shared_ptr<availiability>> _avail_list;
 
+    /* If anyone owns this node then this will point to that tile. */
+    std::shared_ptr<tile> _owner;
+
 private:
     cnode(const std::string name,
-         const libflo::unknown<size_t>& width,
-         const libflo::unknown<size_t>& depth,
-         bool is_mem,
-         bool is_const,
-         libflo::unknown<size_t> cycle);
+          const libflo::unknown<size_t>& width,
+          const libflo::unknown<size_t>& depth,
+          bool is_mem,
+          bool is_const,
+          libflo::unknown<size_t> cycle);
+
+public:
+    /* Updates the availiability listing with a new sort of
+     * availiability. */
+    void make_availiable(const std::shared_ptr<availiability>& a);
+
+    /* Returns the first cycle during with this node can be made
+     * availiable on the target tile.  This cycle must be after
+     * "first_cycle", which is the first cycle at which the scheduler
+     * can actually use this node. */
+    ssize_t obtain(const std::shared_ptr<tile>& tile,
+                   size_t first_cycle,
+                   bool commit);
+
+    /* Provides access to the availiability list of this node. */
+    std::list<std::shared_ptr<availiability>> avail_list(void) const
+        { return _avail_list; }
+
+    /* Allows us to manage the owner of this node, which is the node
+     * upon which memory has been allocated to store this node between
+     * cycles.  This only makes sense for persistant nodes, otherwise
+     * it'll probably never get allocated at all! */
+    std::shared_ptr<tile> owner(void) const { return _owner; }
+    void set_owner(const std::shared_ptr<tile>& owner) { _owner = owner; }
+    
 };
 
 #endif
+

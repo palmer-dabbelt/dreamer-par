@@ -22,12 +22,38 @@
 #include "cnode.h++"
 
 cnode::cnode(const std::string name,
-           const libflo::unknown<size_t>& width,
-           const libflo::unknown<size_t>& depth,
-           bool is_mem,
-           bool is_const,
-           libflo::unknown<size_t> cycle)
+             const libflo::unknown<size_t>& width,
+             const libflo::unknown<size_t>& depth,
+             bool is_mem,
+             bool is_const,
+             libflo::unknown<size_t> cycle)
     : libflo::node(name, width, depth, is_mem, is_const, cycle),
       _avail_list()
 {
+}
+
+void cnode::make_availiable(const std::shared_ptr<availiability>& a)
+{
+    _avail_list.push_back(a);
+}
+
+ssize_t cnode::obtain(const std::shared_ptr<tile>& tile,
+                      size_t first_cycle,
+                      bool commit)
+{
+    std::shared_ptr<availiability> best = NULL;
+    ssize_t best_cycle = -1;
+
+    for (const auto& a: _avail_list) {
+        ssize_t cycle = a->obtain(tile, first_cycle, false);
+        if ((best == NULL) || (best_cycle > cycle)) {
+            best = a;
+            best_cycle = cycle;
+        }
+    }
+
+    if (best == NULL)
+        return -1;
+
+    return best->obtain(tile, first_cycle, commit);
 }

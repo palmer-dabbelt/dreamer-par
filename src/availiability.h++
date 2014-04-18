@@ -26,6 +26,7 @@ class availiability;
 
 #include "cnode.h++"
 #include "tile.h++"
+#include <string>
 
 /* This manages the particular ways in which an node can be availiable
  * -- note that there's a whole bunch of special rules, so you
@@ -33,11 +34,24 @@ class availiability;
  * as they've got those special rules. */
 class availiability {
 public:
-    ssize_t obtain(const std::shared_ptr<cnode>& node,
-                   const std::shared_ptr<tile>& tile,
-                   bool commit);
-};
+    /* Obtains access to the given node on the given tile via this
+     * sort of availiability, returning the first cycle on which this
+     * availiability could be granted.  Note that the returned cycle
+     * must always be after the passed in first cycle, which is the
+     * first cycle that the scheduler can make this happen on.  This
+     * will mean different things for different sorts of
+     * availiability. */
+    virtual ssize_t obtain(const std::shared_ptr<tile>& tile,
+                           size_t first_cycle,
+                           bool commit) = 0;
 
-/*  */
+    /* Marks a particular sort of availiability as no longer valid.
+     * This can happen during register allocation, for example. */
+    virtual void deallocate(size_t cycle) = 0;
+
+    /* Provides some string representation of this sort of
+     * availiability. */
+    virtual std::string to_string(void) const = 0;
+};
 
 #endif
