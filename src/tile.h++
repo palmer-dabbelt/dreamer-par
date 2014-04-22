@@ -48,7 +48,7 @@ public:
      * then the result of this placement will actually be stored to
      * the machine, if FALSE then this just returns the cycle at which
      * this would be placed. */
-    ssize_t place(const std::shared_ptr<operation>& op, bool commit);
+    ssize_t place(const std::shared_ptr<operation>& op, bool commit=true);
 
     /* Attempts to obtain access to a node.  This access must be
      * performed after "first_cycle" which is the first cycle in which
