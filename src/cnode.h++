@@ -54,13 +54,10 @@ public:
      * availiability. */
     void make_availiable(const std::shared_ptr<availiability>& a);
 
-    /* Returns the first cycle during with this node can be made
-     * availiable on the target tile.  This cycle must be after
-     * "first_cycle", which is the first cycle at which the scheduler
-     * can actually use this node. */
-    ssize_t obtain(const std::shared_ptr<tile>& tile,
-                   size_t first_cycle,
-                   bool commit);
+    /* Obtains this node as a register value on the given tile, at
+     * some point after the given cycle. */
+    std::shared_ptr<libdrasm::regval> obtain(const std::shared_ptr<tile>& tile,
+                                             ssize_t& cycle);
 
     /* Provides access to the availiability list of this node. */
     std::list<std::shared_ptr<availiability>> avail_list(void) const
@@ -72,8 +69,10 @@ public:
      * it'll probably never get allocated at all! */
     std::shared_ptr<tile> owner(void) const { return _owner; }
     void set_owner(const std::shared_ptr<tile>& owner) { _owner = owner; }
-    
+
+    /* Call this when a node has been computed at a particular tile on
+     * the given cycle. */
+    void computed_at(const std::shared_ptr<tile>& tile, ssize_t cycle);
 };
 
 #endif
-

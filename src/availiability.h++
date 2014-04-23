@@ -25,6 +25,7 @@
 class cnode;
 class tile;
 
+#include <libdrasm/regval.h++>
 #include <memory>
 #include <string>
 
@@ -34,16 +35,20 @@ class tile;
  * as they've got those special rules. */
 class availiability {
 public:
-    /* Obtains access to the given node on the given tile via this
-     * sort of availiability, returning the first cycle on which this
-     * availiability could be granted.  Note that the returned cycle
-     * must always be after the passed in first cycle, which is the
-     * first cycle that the scheduler can make this happen on.  This
-     * will mean different things for different sorts of
-     * availiability. */
-    virtual ssize_t obtain(const std::shared_ptr<tile>& tile,
-                           size_t first_cycle,
-                           bool commit) = 0;
+    /* Returns an approximation of the cost involved in obtaining a
+     * value as a register on the given tile at the given cycle.  Note
+     * that if this cost is -1 then it's impossible to obtain this
+     * value, otherwise larger values are more expensive.  This is
+     * roughly the number of instructions required, but it's a quick
+     * mesaure (so no congestion for the network, for example). */
+    virtual ssize_t cost_to_obtain(const std::shared_ptr<tile>& tile,
+                                   ssize_t cycle) = 0;
+
+    /* Actually obtains a value as a register on the given tile.  Note
+     * that if you return a non-negative cost then this can't fail! */
+    virtual std::shared_ptr<libdrasm::regval> obtain(
+        const std::shared_ptr<tile>& tile,
+        ssize_t &cycle) = 0;
 
     /* Marks a particular sort of availiability as no longer valid.
      * This can happen during register allocation, for example. */

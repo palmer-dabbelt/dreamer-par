@@ -30,7 +30,7 @@ avail_mem::avail_mem(size_t start_cycle, const std::weak_ptr<tile>& owner)
 std::string avail_mem::to_string(void) const
 {
     char buffer[1024];
-    if (_end_cycle == (size_t)(-1)) {
+    if (_end_cycle == -1) {
         snprintf(buffer, 1024, "memory in %s after %lu",
                  _owner.lock()->name().c_str(),
                  _start_cycle

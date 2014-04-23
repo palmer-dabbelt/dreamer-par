@@ -37,14 +37,15 @@ protected:
 public:
     /* Network operations are only valid for a single cycle, as
      * they'll be gone directly after that. */
-    avail_net(size_t cycle, const std::weak_ptr<tile>& owner,
-              const std::weak_ptr<cnode>& node);
+    avail_net(size_t cycle, const std::weak_ptr<tile>& owner);
 
     /* Overrides from "class availiability". */
-    ssize_t obtain(const std::shared_ptr<tile>& tile,
-                   size_t first_cycle,
-                   bool commit) override;
-    void deallocate(size_t end_cycle) override;
+    ssize_t cost_to_obtain(const std::shared_ptr<tile>& tile,
+                           ssize_t cycle) override;
+    std::shared_ptr<libdrasm::regval> obtain(
+        const std::shared_ptr<tile>& tile,
+        ssize_t& cicle) override;
+    void deallocate(size_t cycle) override;
     std::string to_string(void) const override;
 };
 

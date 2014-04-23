@@ -24,48 +24,60 @@
 #include "tile.h++"
 
 avail_net::avail_net(size_t start_cycle,
-                     const std::weak_ptr<tile>& owner,
-                     const std::weak_ptr<cnode>& node)
+                     const std::weak_ptr<tile>& owner)
     : _cycle(start_cycle),
-      _owner(owner),
-      _node(node)
+      _owner(owner)
 {
 }
 
-ssize_t avail_net::obtain(const std::shared_ptr<tile>& t,
-                          size_t first_cycle,
-                          bool commit)
+ssize_t avail_net::cost_to_obtain(const std::shared_ptr<tile>& tile,
+                                  ssize_t cycle)
 {
     /* FIXME: Does it make sense to loop back network ports? */
-    if (t->name() == _owner.lock()->name())
+    if (tile->name() == _owner.lock()->name())
         return -1;
 
     /* If for some reason there's no path between these two then it
      * won't be possible to route at all. */
-    auto path = _owner.lock()->search(t);
+    auto path = _owner.lock()->search(tile);
     if (path == NULL)
         return -1;
 
+    /* Just assume no congestion, the shortest route will always be
+     * picked. */
+    ssize_t arrival_cycle = _cycle + path->cost();
+    if (arrival_cycle < cycle)
+        return cycle;
+    return arrival_cycle;
+}
+
+std::shared_ptr<libdrasm::regval> avail_net::obtain(
+        const std::shared_ptr<tile>& tile,
+        ssize_t& cycle __attribute__((unused)))
+{
+    /* FIXME: Does it make sense to loop back network ports? */
+    if (tile->name() == _owner.lock()->name())
+        return NULL;
+
+    /* If for some reason there's no path between these two then it
+     * won't be possible to route at all. */
+    auto path = _owner.lock()->search(tile);
+    if (path == NULL)
+        return NULL;
+
     /* FIXME: We aren't doing any sort of congestion control here... */
     ssize_t arrival_cycle = _cycle + path->cost();
-    arrival_cycle = t->find_free_instruction(arrival_cycle);
+    arrival_cycle = tile->find_free_instruction(arrival_cycle);
     if (arrival_cycle < 0)
-        return -1;
+        return NULL;
 
-    ssize_t reg = t->allocate_register(arrival_cycle, false);
-    if (reg < 0)
-        return -1;
+    auto reg = tile->allocate_register(arrival_cycle);
+    if (reg == NULL)
+        return NULL;
 
-    if (commit) {
-        if (t->allocate_register(arrival_cycle, commit) < 0) {
-            fprintf(stderr, "Register allocation failed\n");
-            abort();
-        }
-    }
-
-    if ((size_t)arrival_cycle < first_cycle)
-        return first_cycle;
-    return arrival_cycle;
+    if (arrival_cycle > cycle)
+        cycle = arrival_cycle;
+    return std::make_shared<libdrasm::regval>();
 }
 
 void avail_net::deallocate(size_t end_cycle __attribute__((unused)))

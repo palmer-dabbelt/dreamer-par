@@ -29,8 +29,8 @@ class avail_reg;
 /* This tracks the availiability of a value inside a register. */
 class avail_reg: public availiability {
 protected:
-    size_t _start_cycle;
-    size_t _end_cycle;
+    ssize_t _start_cycle;
+    ssize_t _end_cycle;
     std::weak_ptr<tile> _owner;
 
 public:
@@ -38,16 +38,18 @@ public:
      * register: either this value can exist for all time (it has yet
      * to be deallocated) or it can exist for only a fixed internal
      * (we for some reason know it'll be deallocated soon). */
-    avail_reg(size_t start_cycle, const std::weak_ptr<tile>& owner);
+    avail_reg(ssize_t start_cycle, const std::weak_ptr<tile>& owner);
 
-    avail_reg(size_t start_cycle, size_t end_cycle,
+    avail_reg(ssize_t start_cycle, ssize_t end_cycle,
               const std::weak_ptr<tile>& owner);
 
     /* Overrides from "class availiability". */
-    ssize_t obtain(const std::shared_ptr<tile>& tile,
-                   size_t first_cycle,
-                   bool commit) override;
-    void deallocate(size_t end_cycle) override;
+    ssize_t cost_to_obtain(const std::shared_ptr<tile>& tile,
+                           ssize_t cycle) override;
+    std::shared_ptr<libdrasm::regval> obtain(
+        const std::shared_ptr<tile>& tile,
+        ssize_t& cycle) override;
+    void deallocate(size_t cycle) override;
     std::string to_string(void) const override;
 };
 

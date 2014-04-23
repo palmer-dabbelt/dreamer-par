@@ -25,6 +25,7 @@
 class tile;
 
 #include <libdrasm/tile.h++>
+#include <libdrasm/regval.h++>
 #include <libocn/node.h++>
 #include <string>
 #include "avail_net.h++"
@@ -43,23 +44,21 @@ public:
     tile(const std::string& name, const std::shared_ptr<machine>& m);
     void set_self_pointer(const std::shared_ptr<tile>& self);
 
-    /* Places an operation on this tile, returning the cycle at which
-     * this operation will be scheduled.  If "commit" is set to TRUE
-     * then the result of this placement will actually be stored to
-     * the machine, if FALSE then this just returns the cycle at which
-     * this would be placed. */
-    ssize_t place(const std::shared_ptr<operation>& op, bool commit=true);
+    /* Attempts to place the given operation on this tile, returning
+     * TRUE if the operation could actually be placed and FALSE
+     * otherwise. */
+    bool place(const std::shared_ptr<operation>& op);
 
-    /* Attempts to obtain access to a node.  This access must be
-     * performed after "first_cycle" which is the first cycle in which
-     * this computation can be completed. */
-    ssize_t obtain(const std::shared_ptr<cnode>& node,
-                   size_t target_cycle,
-                   bool commit);
+    /* Attempts to obtain access to a node as a register on this tile.
+     * This access must exist at the given cycle, but we can modify */
+    std::shared_ptr<libdrasm::regval> obtain(const std::shared_ptr<cnode>& node,
+                                             ssize_t &cycle);
 
-    /* Allocates a register, potientally spilling if need be. */
-    ssize_t allocate_register(size_t target_cycle,
-                              bool commit);
+    /* Allocates a register on this tile, potentially spilling some if
+     * we need to in order to obtain a free register.  The register
+     * will be allocated at the given cycle, which may need to be
+     * modified in order to make space for instructions */
+    std::shared_ptr<libdrasm::regval> allocate_register(ssize_t& cycle);
 };
 
 #endif

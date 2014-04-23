@@ -52,7 +52,7 @@ int main(int argc __attribute__((unused)),
             continue;
 
 #ifdef PRINT_PLACEMENT
-        fprintf(stderr, "Placing Memory '%s'\n",
+        fprintf(stderr, "\n\n\n\nPlacing Memory '%s'\n",
                 mem->name().c_str()
             );
 #endif
@@ -96,7 +96,7 @@ int main(int argc __attribute__((unused)),
     for (const auto& op: f->operations()) {
 #ifdef PRINT_PLACEMENT
         if (op->op() != libflo::opcode::INIT) {
-            fprintf(stderr, "Placing '%s'\n",
+            fprintf(stderr, "\n\n\n\nPlacing '%s'\n",
                     op->to_string().c_str()
                 );
         }
@@ -111,7 +111,7 @@ int main(int argc __attribute__((unused)),
              * returns TRUE then the correct instructions are already
              * in place that store this operation in the correct
              * place. */
-            bool did_place = (tile->place(op) != -1);
+            bool did_place = tile->place(op);
             if (did_place == true) {
                 target_tile = tile;
                 break;
@@ -143,9 +143,9 @@ int main(int argc __attribute__((unused)),
 #ifdef PRINT_PLACEMENT
         /* Commit the placement for this node. */
         if (op->op() != libflo::opcode::INIT) {
-            fprintf(stderr, "\tat '%s' cycle %lu\n",
-                    min_place->name().c_str(),
-                    min_cycle
+            fprintf(stderr, "\tat '%s' cycle %ld\n",
+                    target_tile->name().c_str(),
+                    op->cycle()
                 );
         }
 #endif

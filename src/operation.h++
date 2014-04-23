@@ -35,10 +35,19 @@ class operation: public libflo::operation<cnode> {
     friend class libflo::operation<cnode>;
 
 private:
+    ssize_t _cycle;
+
+private:
     operation(std::shared_ptr<cnode>& dest,
               const libflo::unknown<size_t>& width,
               const libflo::opcode& op,
               const std::vector<std::shared_ptr<cnode>>& s);
+
+public:
+    /* Allows us to update the cycle this is computed at, and query
+     * that value. */
+    ssize_t cycle(void) const { return _cycle; }
+    void set_cycle(ssize_t cycle) { _cycle = cycle; }
 };
 
 #endif

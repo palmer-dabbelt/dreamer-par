@@ -20,6 +20,8 @@
  */
 
 #include "cnode.h++"
+#include "avail_reg.h++"
+#include "avail_net.h++"
 
 cnode::cnode(const std::string name,
              const libflo::unknown<size_t>& width,
@@ -37,26 +39,54 @@ void cnode::make_availiable(const std::shared_ptr<availiability>& a)
     _avail_list.push_back(a);
 }
 
-ssize_t cnode::obtain(const std::shared_ptr<tile>& tile,
-                      size_t first_cycle,
-                      bool commit)
+std::shared_ptr<libdrasm::regval> cnode::obtain(
+    const std::shared_ptr<tile>& tile,
+    ssize_t& cycle)
 {
     std::shared_ptr<availiability> best = NULL;
-    ssize_t best_cycle = -1;
+    ssize_t best_cost = 0;
 
     for (const auto& a: _avail_list) {
-        ssize_t cycle = a->obtain(tile, first_cycle, false);
-        if (cycle < 0)
+        ssize_t cost = a->cost_to_obtain(tile, cycle);
+#ifdef PRINT_PLACEMENT
+        fprintf(stderr, "Obtained from '%s' cost %ld\n",
+                a->to_string().c_str(),
+                cost
+            );
+#endif
+
+        if (cost < 0)
             continue;
 
-        if ((best == NULL) || (best_cycle > cycle)) {
+        if ((best == NULL) || (best_cost > cost)) {
             best = a;
-            best_cycle = cycle;
+            best_cost = cost;
         }
     }
 
-    if (best == NULL)
-        return -1;
+#ifdef PRINT_PLACEMENT
+    fprintf(stderr, "best: '%s'\n",
+            (best == NULL) ? "NULL" : best->to_string().c_str()
+        );
+#endif
 
-    return best->obtain(tile, first_cycle, commit);
+    if (best == NULL)
+        return NULL;
+
+    auto obtained = best->obtain(tile, cycle);
+    if (obtained == NULL) {
+        fprintf(stderr, "'%s' provides '%s' with cost %ld, but no obtain\n",
+                best->to_string().c_str(),
+                name().c_str(),
+                best_cost
+            );
+        abort();
+    }
+    return obtained;
+}
+
+void cnode::computed_at(const std::shared_ptr<tile>& tile, ssize_t cycle)
+{
+    make_availiable(std::make_shared<avail_reg>(cycle, tile));
+    make_availiable(std::make_shared<avail_net>(cycle, tile));
 }

@@ -25,6 +25,7 @@ operation::operation(std::shared_ptr<cnode>& dest,
                      const libflo::unknown<size_t>& width,
                      const libflo::opcode& op,
                      const std::vector<std::shared_ptr<cnode>>& s)
-    : libflo::operation<cnode>(dest, width, op, s)
+    : libflo::operation<cnode>(dest, width, op, s),
+      _cycle(-1)
 {
 }

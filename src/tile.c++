@@ -37,8 +37,7 @@ void tile::set_self_pointer(const std::shared_ptr<tile>& self)
     _self = self;
 }
 
-ssize_t tile::place(const std::shared_ptr<operation>& op,
-                    bool commit __attribute__((unused)))
+bool tile::place(const std::shared_ptr<operation>& op)
 {
     /* We need a self-pointer here. */
     if (_self.expired() == true) {
@@ -51,7 +50,7 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
          * do anything at all!  This isn't actually a problem as
          * nothing can ever refer to them. */
     case libflo::opcode::INIT:
-        return 0;
+        return true;
 
         /* These nodes don't have any other constraints at all, they
          * can simply be placed anywhere on the graph. */
@@ -60,24 +59,18 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
         /* In order to make this work we need two things: an
          * instruction to actually load the input, and a register in
          * which to store that value. */
-        ssize_t c = find_free_instruction();
-        if (c < 0) return -1;
-        ssize_t r = allocate_register(c, false);
-        if (r < 0) return -1;
+        auto c = find_free_instruction();
+        if (c < 0) return false;
+        auto r = allocate_register(c);
+        if (r == NULL) return false;
 
-        if (commit) {
-            use_instruction(c);
-            allocate_register(c, true);
-            op->d()->make_availiable(std::make_shared<avail_reg>(c,
-                                                                 _self
-                                         ));
-            op->d()->make_availiable(std::make_shared<avail_net>(c,
-                                                                 _self,
-                                                                 op->d()
-                                         ));
-        }
+        /* We know this instruction can be computed on this tile so go
+         * ahead and do so right now. */
+        use_instruction(c);
+        op->d()->computed_at(_self.lock(), c);
+        op->set_cycle(c);
 
-        return c;
+        return true;
     }
 
         /* These are "regular" operations, which essentially just
@@ -112,66 +105,53 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
     case libflo::opcode::WR:
     {
         /* We need to use an instruction in order to compute this
-         * operation, so find one right here that we could use. */
-        ssize_t first_cycle = find_free_instruction();
-        if (first_cycle < 0)
-            return -1;
+         * operation, so find one right here that we could use -- if
+         * there's none left on this tile then die right away. */
+        auto cycle = find_free_instruction();
+        if (cycle < 0)
+            return false;
 
-        /* Finds a register that we could potentially use to
-         * allocate. */
-        ssize_t reg = allocate_register(first_cycle, false);
-        if (reg < 0)
-            return -1;
+#ifdef PRINT_PLACEMENT
+        fprintf(stderr, "Attempting to place '%s' on '%s' at %ld\n",
+                op->to_string().c_str(),
+                name().c_str(),
+                cycle);
+#endif
 
-        /* Walk through the entire list of sources and figure out when
-         * (if ever) we can obtain all these values on this tile. */
-        ssize_t target_cycle = first_cycle;
+        /* Walk through the list of sources and attempt to obtain each
+         * one as a register value that lives on this tile.  Note that
+         * if this fails we don't actually perform cleanup but instead
+         * just leave the extra values around -- this will only fail
+         * when we're close to full of instructions on a tile, so it
+         * shouldn't be a problem (as probably nothing else can fit
+         * anyway). */
         for (const auto& source: op->sources()) {
-            ssize_t cycle = obtain(source, first_cycle, false);
-            if (cycle < 0)
-                return -1;
+#ifdef PRINT_PLACEMENT
+            fprintf(stderr, "Obtaining '%s'\n", source->name().c_str());
+#endif
+            auto source_reg = obtain(source, cycle);
+            if (source_reg == NULL)
+                return false;
 
-            if (cycle > target_cycle)
-                target_cycle = cycle;
+#ifdef PRINT_PLACEMENT
+            fprintf(stderr, "'%s' obtained\n", source->name().c_str());
+#endif
         }
 
-        /* It's possible that the suggested cycle is not valid because
-         * something else has been scheduled then.  Here we find a new
-         * instruction slot during which we can schedule this
-         * operation. */
-        target_cycle = find_free_instruction(target_cycle);
+        /* All operations output some value, and we can only store
+         * those values in a register.  Here we find the register that
+         * we'll compute into. */
+        auto reg = allocate_register(cycle);
+        if (reg == NULL)
+            return false;
 
-        /* If they're all availiable, then actually commit to moving
-         * them to this tile. */
-        for (const auto& source: op->sources()) {
-            ssize_t cycle = obtain(source, target_cycle, commit);
-
-            /* FIXME: I actually expect this assert to fail every once
-             * in a while.  Specifically, just because a value was
-             * availiable at an earlier cycle doesn't mean it can be
-             * made availiable now! */
-            if (cycle != target_cycle) {
-                fprintf(stderr, "Mis-matched target cycle\n");
-                fprintf(stderr, "  target_cycle: %lu\n", target_cycle);
-                fprintf(stderr, "  '%s': %lu\n", source->name().c_str(), cycle);
-                abort();
-            }
-        }
-
-        /* Now that we've got everything on this tile, use up an
-         * instruction in order to compute the values. */
-        if (commit) {
-            use_instruction(target_cycle);
-            allocate_register(target_cycle, commit);
-            op->d()->make_availiable(std::make_shared<avail_reg>(target_cycle,
-                                                                 _self));
-            op->d()->make_availiable(std::make_shared<avail_net>(target_cycle,
-                                                                 _self,
-                                                                 op->d()
-                                         ));
-        }
-
-        return target_cycle;
+        /* At this point we've got every value on this tile and a free
+         * instruction with wich to perform the computation.  Here we
+         * actually do that computation. */
+        use_instruction(cycle);
+        op->set_cycle(cycle);
+        op->d()->computed_at(_self.lock(), cycle);
+        return true;
     }
 
         /* These nodes don't actually need to be scheduled, so just
@@ -179,14 +159,15 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
     case libflo::opcode::CATD:
     case libflo::opcode::MEM:
     case libflo::opcode::NOP:
-        return 0;
+        op->set_cycle(0);
+        return true;
 
     case libflo::opcode::EAT:
     case libflo::opcode::LD:
     case libflo::opcode::REG:
     case libflo::opcode::ST:
         fprintf(stderr, "Unhandled op '%s'\n", op->to_string().c_str());
-        return -1;
+        return false;
     }
 
     fprintf(stderr, "Reached end of switch: %d\n", op->op());
@@ -194,29 +175,29 @@ ssize_t tile::place(const std::shared_ptr<operation>& op,
     return -1;
 }
 
-ssize_t tile::obtain(const std::shared_ptr<cnode>& n,
-                     size_t target_cycle,
-                     bool commit)
+std::shared_ptr<libdrasm::regval> tile::obtain(
+    const std::shared_ptr<cnode>& node,
+    ssize_t &cycle)
 {
     /* Constants are always availiable, all the time. */
-    if (n->is_const())
-        return target_cycle;
+    if (node->is_const())
+        return std::make_shared<libdrasm::regval>();
 
-    return n->obtain(_self.lock(), target_cycle, commit);
+    return node->obtain(_self.lock(), cycle);
 }
 
 /* FIXME: This does no register allocation.  This is actually OK
  * because it'll never fail if you've got the same number of registers
  * as instructions (which we do!). */
-ssize_t tile::allocate_register(size_t target_cycle __attribute__((unused)),
-                                bool commit)
+std::shared_ptr<libdrasm::regval>
+tile::allocate_register(ssize_t& cycle __attribute__((unused)))
 {
-    ssize_t r = find_free_register();
-    if (r < 0)
-        return -1;
+    auto r = find_free_register();
+    if (r < 0) {
+        fprintf(stderr, "Register spilling unimplemented\n");
+        abort();
+    }
+    use_register(r);
 
-    if (commit)
-        use_register(r);
-
-    return r;
+    return std::make_shared<libdrasm::regval>();
 }
