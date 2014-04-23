@@ -29,8 +29,8 @@ class machine;
 
 class machine: public libdrasm::machine_t<tile> {
 public:
-    machine(size_t w, size_t h,
-            std::function<std::shared_ptr<tile>(size_t, size_t)> f);
+    machine(const std::string filename,
+            std::function<std::shared_ptr<tile>(std::string)> f);
 };
 
 #endif

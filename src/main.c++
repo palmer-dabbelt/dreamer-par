@@ -33,11 +33,9 @@ int main(int argc __attribute__((unused)),
      * information that's necessary in order to describe a DREAMER
      * target. */
     std::shared_ptr<machine> m = std::make_shared<machine>(
-        8, 8,
-        [&m](size_t x, size_t y) -> std::shared_ptr<tile> {
-            char buffer[1024];
-            snprintf(buffer, 1024, "(%lu,%lu)", x, y);
-            auto sp = std::make_shared<tile>(buffer, m);
+        argv[2],
+        [&m](std::string name) -> std::shared_ptr<tile> {
+            auto sp = std::make_shared<tile>(name, m);
             sp->set_self_pointer(sp);
             return sp;
         }
