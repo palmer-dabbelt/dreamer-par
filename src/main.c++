@@ -26,9 +26,16 @@
 #include "operation.h++"
 #include <libflo/flo.h++>
 
-int main(int argc __attribute__((unused)),
-         const char **argv __attribute__((unused)))
+int main(int argc, const char **argv)
 {
+    if (argc != 3) {
+        printf("%s <PROGRAM.flo> <NETWORK.ocn>: DREAMER Place-and-Route\n",
+               argv[0]);
+        printf("\tPerforms place-and-route for a DREAMER machine\n");
+
+        return ((argc == 2) && (strcmp(argv[1], "--help") == 0)) ? 0 : 1;
+    }
+
     /* Create a DREAMER machine descriptor, which contains all the
      * information that's necessary in order to describe a DREAMER
      * target. */
