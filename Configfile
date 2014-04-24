@@ -17,3 +17,4 @@ LINKOPTS    += `ppkg-config libdrasm --libs`
 SOURCES     += main.c++
 TESTSRC     += DES-mesh-8x8.bash
 TESTSRC     += DES-crossbar-64.bash
+TESTSRC     += DES-cmesh-2x2-16.bash
