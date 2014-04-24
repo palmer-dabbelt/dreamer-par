@@ -15,3 +15,5 @@ LINKOPTS    += `ppkg-config flo --libs`
 COMPILEOPTS += `ppkg-config libdrasm --cflags`
 LINKOPTS    += `ppkg-config libdrasm --libs`
 SOURCES     += main.c++
+TESTSRC     += DES-mesh-8x8.bash
+TESTSRC     += DES-crossbar-64.bash
