@@ -51,42 +51,6 @@ int main(int argc, const char **argv)
     /* Parse the flo file that we're going to PAR. */
     auto f = libflo::flo<cnode, operation>::parse(argv[1]);
 
-    /* The first thing we need to do is place memories. */
-    for (const auto& mem: f->nodes()) {
-        if (mem->is_mem() == false)
-            continue;
-
-#ifdef PRINT_PLACEMENT
-        fprintf(stderr, "\n\n\n\nPlacing Memory '%s'\n",
-                mem->name().c_str()
-            );
-#endif
-
-        ssize_t min_filled = -1;
-        std::shared_ptr<tile> min_place = NULL;
-        for (const auto& tile: m->network()->nodes()) {
-            auto filled = tile->find_free_array(mem->depth());
-            if (filled == -1)
-                continue;
-
-            if ((filled < min_filled) || (min_place == NULL)) {
-                min_filled = filled;
-                min_place = tile;
-            }
-        }
-
-        if (min_place == NULL) {
-            fprintf(stderr, "Unable to place memory '%s'\n",
-                    mem->name().c_str()
-                );
-            abort();
-        }
-
-        min_place->use_array(min_filled, mem->depth());
-        mem->set_owner(min_place);
-        mem->make_availiable(std::make_shared<avail_mem>(0, min_place));
-    }
-
     /* Here we start with a list of all the possible targets on which
      * we can schedule an instruction.  These are kept in sorted order
      * by the cycle that their last instruction will run on. */
