@@ -73,33 +73,6 @@ bool tile::place(const std::shared_ptr<operation>& op)
         return true;
     }
 
-        /* Memory operations need to have their memories placed.  If
-         * the memory they refer to is not placed then we guess by
-         * placing it on the current tile.*/
-    case libflo::opcode::RD:
-    case libflo::opcode::WR:
-    {
-        for (const auto& source: op->sources()) {
-            if (!source->is_mem())
-                continue;
-
-            if (source->owner() != NULL)
-                continue;
-
-            ssize_t array = find_free_array(source->depth());
-            if (array < 0)
-                return false;
-
-            auto tile = _self.lock();
-            use_array(array, source->depth());
-            source->set_owner(tile);
-            source->make_availiable(std::make_shared<avail_mem>(0, tile));
-        }
-
-        /* There's a fall-through to the regular operation placement
-         * code here code here! */
-    }
-
         /* These are "regular" operations, which essentially just
          * means that they've got to be scheduled after all their
          * inputs. */
@@ -122,13 +95,36 @@ bool tile::place(const std::shared_ptr<operation>& op)
     case libflo::opcode::NEQ:
     case libflo::opcode::NOT:
     case libflo::opcode::OUT:
+    case libflo::opcode::RD:
     case libflo::opcode::RND:
     case libflo::opcode::RSH:
     case libflo::opcode::RSHD:
     case libflo::opcode::RST:
     case libflo::opcode::SUB:
+    case libflo::opcode::WR:
     case libflo::opcode::XOR:
     {
+        /* Memories need to be placed before we use them.  Note that
+         * many sorts of operations can refer to a memory, so in this
+         * case we just wait for a memory node to appear and schedule
+         * it on this tile -- essentially it's a greedy schedule. */
+        for (const auto& source: op->sources()) {
+            if (!source->is_mem())
+                continue;
+
+            if (source->owner() != NULL)
+                continue;
+
+            ssize_t array = find_free_array(source->depth());
+            if (array < 0)
+                return false;
+
+            auto tile = _self.lock();
+            use_array(array, source->depth());
+            source->set_owner(tile);
+            source->make_availiable(std::make_shared<avail_mem>(0, tile));
+        }
+
         /* We need to use an instruction in order to compute this
          * operation, so find one right here that we could use -- if
          * there's none left on this tile then die right away. */
