@@ -83,6 +83,7 @@ bool tile::place(const std::shared_ptr<operation>& op)
     case libflo::opcode::OR:
     case libflo::opcode::EQ:
     case libflo::opcode::GTE:
+    case libflo::opcode::LD:
     case libflo::opcode::LIT:
     case libflo::opcode::LOG2:
     case libflo::opcode::LSH:
@@ -100,6 +101,7 @@ bool tile::place(const std::shared_ptr<operation>& op)
     case libflo::opcode::RSH:
     case libflo::opcode::RSHD:
     case libflo::opcode::RST:
+    case libflo::opcode::ST:
     case libflo::opcode::SUB:
     case libflo::opcode::WR:
     case libflo::opcode::XOR:
@@ -184,9 +186,7 @@ bool tile::place(const std::shared_ptr<operation>& op)
         return true;
 
     case libflo::opcode::EAT:
-    case libflo::opcode::LD:
     case libflo::opcode::REG:
-    case libflo::opcode::ST:
         fprintf(stderr, "Unhandled op '%s'\n", op->to_string().c_str());
         return false;
     }
