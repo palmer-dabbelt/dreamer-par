@@ -28,8 +28,10 @@ cnode::cnode(const std::string name,
              const libflo::unknown<size_t>& depth,
              bool is_mem,
              bool is_const,
-             libflo::unknown<size_t> cycle)
-    : libflo::node(name, width, depth, is_mem, is_const, cycle),
+             libflo::unknown<size_t> cycle,
+             const libflo::unknown<size_t>& x,
+             const libflo::unknown<size_t>& y)
+    : libflo::node(name, width, depth, is_mem, is_const, cycle, x, y),
       _avail_list()
 {
 }
