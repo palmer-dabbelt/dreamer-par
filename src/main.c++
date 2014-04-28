@@ -63,6 +63,17 @@ int main(int argc, const char **argv)
      * compute that node. */
     size_t placed = 0;
     for (const auto& op: f->operations()) {
+        std::sort(tiles.begin(), tiles.end(),
+                  [](const std::shared_ptr<tile>& a,
+                     const std::shared_ptr<tile>& b)
+                  -> bool
+                  {
+                      auto ai = a->last_used_instruction();
+                      auto bi = b->last_used_instruction();
+                      return ai < bi;
+                  }
+            );
+
 #ifdef PRINT_PLACEMENT
         if (op->op() != libflo::opcode::INIT) {
             fprintf(stderr, "\n\n\n\nPlacing '%s'\n",
@@ -124,24 +135,6 @@ int main(int argc, const char **argv)
         if ((placed % DEBUG_PLACE_MODULO) == 0)
             fprintf(stderr, "Placed: %ld\n", placed);
 #endif
-
-        std::sort(tiles.begin(), tiles.end(),
-                  [](const std::shared_ptr<tile>& a,
-                     const std::shared_ptr<tile>& b)
-                  -> bool
-                  {
-                      if (a == NULL && b == NULL)
-                          return 0;
-                      if (a == NULL)
-                          return 1;
-                      if (b == NULL)
-                          return -1;
-
-                      auto ai = a->last_used_instruction();
-                      auto bi = b->last_used_instruction();
-                      return ai < bi;
-                  }
-            );
     }
 
     ssize_t last_cycle = 0;
