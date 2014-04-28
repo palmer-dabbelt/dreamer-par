@@ -18,3 +18,6 @@ SOURCES     += main.c++
 TESTSRC     += DES-mesh-8x8.bash
 TESTSRC     += DES-crossbar-64.bash
 TESTSRC     += DES-cmesh-2x2-16.bash
+TESTSRC     += pDES-mesh-8x8.bash
+TESTSRC     += pDES-crossbar-64.bash
+TESTSRC     += pDES-cmesh-2x2-16.bash
