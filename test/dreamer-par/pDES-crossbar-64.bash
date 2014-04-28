@@ -1,7 +1,7 @@
 #include "tempdir.bash"
 
 cat >test.flo <<"EOF"
-#include "pDES-flo.bash"
+#include "pDES-flo-xbar.bash"
 EOF
 
 ocn-neighbors --crossbar 64 > network.ocn
