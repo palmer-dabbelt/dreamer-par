@@ -63,6 +63,7 @@ int main(int argc, const char **argv)
      * compute that node. */
     size_t placed = 0;
     for (const auto& op: f->operations()) {
+        /* First we sort the  */
         std::sort(tiles.begin(), tiles.end(),
                   [](const std::shared_ptr<tile>& a,
                      const std::shared_ptr<tile>& b)
@@ -73,6 +74,32 @@ int main(int argc, const char **argv)
                       return ai < bi;
                   }
             );
+
+        /* If this operation has ever been placed then we need to sort
+         * again, this time placing the node where this has been
+         * placed first. */
+        std::shared_ptr<tile> ontile = NULL;
+        if (op->d()->pos_known() == true) {
+            auto x = op->d()->x();
+            auto y = op->d()->y();
+            ontile = m->network()->lookup(x, y);
+            if (ontile == NULL) {
+                fprintf(stderr, "Placed on (%lu, %lu), but no tile\n",
+                        x, y);
+                abort();
+            }
+        }
+
+        if (ontile != NULL) {
+            std::stable_sort(tiles.begin(), tiles.end(),
+                             [&ontile](const std::shared_ptr<tile>& a,
+                                       const std::shared_ptr<tile>& b
+                                             __attribute__((unused)))
+                             {
+                                 return ontile->name() == a->name();
+                             }
+                );
+        }
 
 #ifdef PRINT_PLACEMENT
         if (op->op() != libflo::opcode::INIT) {
