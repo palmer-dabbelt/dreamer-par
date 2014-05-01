@@ -30,14 +30,14 @@ class avail_net;
  * network output port.  */
 class avail_net: public availiability {
 protected:
-    size_t _cycle;
+    ssize_t _cycle;
     std::weak_ptr<tile> _owner;
     std::weak_ptr<cnode> _node;
 
 public:
     /* Network operations are only valid for a single cycle, as
      * they'll be gone directly after that. */
-    avail_net(size_t cycle, const std::weak_ptr<tile>& owner);
+    avail_net(ssize_t cycle, const std::weak_ptr<tile>& owner);
 
     /* Overrides from "class availiability". */
     ssize_t cost_to_obtain(const std::shared_ptr<tile>& tile,

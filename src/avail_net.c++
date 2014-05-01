@@ -23,7 +23,7 @@
 #include "avail_reg.h++"
 #include "tile.h++"
 
-avail_net::avail_net(size_t start_cycle,
+avail_net::avail_net(ssize_t start_cycle,
                      const std::weak_ptr<tile>& owner)
     : _cycle(start_cycle),
       _owner(owner)
@@ -53,7 +53,7 @@ ssize_t avail_net::cost_to_obtain(const std::shared_ptr<tile>& tile,
 
 std::shared_ptr<libdrasm::regval> avail_net::obtain(
         const std::shared_ptr<tile>& tile,
-        ssize_t& cycle __attribute__((unused)))
+        ssize_t& cycle)
 {
     /* FIXME: Does it make sense to loop back network ports? */
     if (tile->name() == _owner.lock()->name())
@@ -65,12 +65,27 @@ std::shared_ptr<libdrasm::regval> avail_net::obtain(
     if (path == NULL)
         return NULL;
 
-    /* FIXME: We aren't doing any sort of congestion control here... */
-    ssize_t arrival_cycle = _cycle + path->cost();
-    arrival_cycle = tile->find_free_instruction(arrival_cycle);
-    if (arrival_cycle < 0)
-        return NULL;
+    /* Start tracking the arrival cycle of this packet as it flows
+     * through each tile.  We start with the first cycle that this
+     * packet is availiable at. */
+    auto arrival_cycle = _cycle;
 
+    /* Walk the path that this packet will take, finding a free
+     * transmission slot at every point in time and updating the
+     * arrival cycle to match that point explicitly. */
+    for (const auto& step: path->steps()) {
+        auto incoming_cycle = step->find_free_transmission(arrival_cycle);
+        if (incoming_cycle < 0) {
+            fprintf(stderr, "Ran out of network memory\n");
+            abort();
+        }
+        /* FIXME: This isn't correct, it should be a per-route
+         * parameter. */
+        arrival_cycle = incoming_cycle + 2;
+    }
+
+    /* Here we allocate a register to store the result as it arrives
+     * on the destination tile. */
     auto reg = tile->allocate_register(arrival_cycle);
     if (reg == NULL)
         return NULL;
