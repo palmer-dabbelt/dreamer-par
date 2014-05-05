@@ -165,7 +165,14 @@ int main(int argc, const char **argv)
     }
 
     ssize_t last_cycle = 0;
-    for (const auto& tile: tiles) {
+    for (const auto& tile: m->network()->nodes()) {
+#ifdef DEBUG_ALL_TILE_COUNTS
+        fprintf(stderr, "%s -> %ld\n",
+                tile->name().c_str(),
+                tile->find_free_instruction(0)
+            );
+#endif
+
         if (tile->find_free_instruction(0) > last_cycle)
             last_cycle = tile->last_used_instruction();
     }
