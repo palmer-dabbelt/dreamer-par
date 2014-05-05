@@ -23,3 +23,7 @@ TESTSRC     += pDES-mesh-8x8.bash
 TESTSRC     += pDES-crossbar-64.bash
 TESTSRC     += pDES-cmesh-4x4-4.bash
 TESTSRC     += pDES-xmesh-2x2-16.bash
+TESTSRC     += SIFT-mesh-8x8.bash
+TESTSRC     += SIFT-cmesh-4x4-4.bash
+TESTSRC     += SIFT-crossbar-64.bash
+TESTSRC     += SIFT-xmesh-2x2-16.bash
