@@ -206,7 +206,8 @@ bool tile::place(const std::shared_ptr<operation>& op)
         if (reg == NULL)
             return false;
 
-        /* Now that we've found the resources for this */
+        /* Now that we've found the resources for this, just go ahead
+         * and schedule the load right away. */
         use_instruction(cycle);
         op->set_cycle(cycle);
         op->d()->computed_at(_self.lock(), cycle);
