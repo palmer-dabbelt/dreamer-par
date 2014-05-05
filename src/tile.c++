@@ -177,6 +177,42 @@ bool tile::place(const std::shared_ptr<operation>& op)
         return true;
     }
 
+    case libflo::opcode::REG:
+    {
+        /* Registers are actually stored in memory.  If this register
+         * hasn't been placed anywhere then just go ahead and place it
+         * right here by allocating some space for it. */
+        auto mem = op->t();
+        if (mem->owner() == NULL) {
+            ssize_t array = find_free_word();
+            if (array < 0)
+                return false;
+
+            auto tile = _self.lock();
+            use_array(array, mem->depth());
+            mem->set_owner(tile);
+            mem->make_availiable(std::make_shared<avail_mem>(0, tile));
+        }
+
+        /* FIXME: Register writes need to be handled seperately
+         * somehow.  The LLVM backend does this by waiting for all
+         * reads to complete and then scheduling writes, DREAMER
+         * should do this the same way. */
+        auto cycle = find_free_instruction();
+        if (cycle < 0)
+            return false;
+
+        auto reg = allocate_register(cycle);
+        if (reg == NULL)
+            return false;
+
+        /* Now that we've found the resources for this */
+        use_instruction(cycle);
+        op->set_cycle(cycle);
+        op->d()->computed_at(_self.lock(), cycle);
+        return true;
+    }
+
         /* These nodes don't actually need to be scheduled, so just
          * drop them right here. */
     case libflo::opcode::CATD:
@@ -186,7 +222,6 @@ bool tile::place(const std::shared_ptr<operation>& op)
         return true;
 
     case libflo::opcode::EAT:
-    case libflo::opcode::REG:
         fprintf(stderr, "Unhandled op '%s'\n", op->to_string().c_str());
         return false;
     }
