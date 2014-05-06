@@ -27,3 +27,7 @@ TESTSRC     += SIFT-mesh-8x8.bash
 TESTSRC     += SIFT-cmesh-4x4-4.bash
 TESTSRC     += SIFT-crossbar-64.bash
 TESTSRC     += SIFT-xmesh-2x2-16.bash
+TESTSRC     += DREAMER-mesh-8x8.bash
+TESTSRC     += DREAMER-cmesh-4x4-4.bash
+TESTSRC     += DREAMER-xmesh-2x2-16.bash
+TESTSRC     += DREAMER-crossbar-64.bash
