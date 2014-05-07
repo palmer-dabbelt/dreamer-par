@@ -37,6 +37,10 @@ class tile: public libocn::node<tile>, public libdrasm::tile {
 private:
     std::weak_ptr<tile> _self;
 
+    /* This is used by the simulated annealing code to tune the
+     * congestion cost for the cost function. */
+    size_t _nodes;
+
 public:
     /* Creates a new tile by name.  Note that this actually consists
      * of a pair of operations: one to create the shared pointer, and
@@ -59,6 +63,11 @@ public:
      * will be allocated at the given cycle, which may need to be
      * modified in order to make space for instructions */
     std::shared_ptr<libdrasm::regval> allocate_register(ssize_t& cycle);
+
+    /* Add or remove a node from this tile. */
+    void add_node(void);
+    void remove_node(void);
+    size_t node_count(void) const { return _nodes; }
 };
 
 #endif

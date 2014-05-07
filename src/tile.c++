@@ -28,7 +28,8 @@
 tile::tile(const std::string& name, const std::shared_ptr<machine>& m)
     : libocn::node<tile>(name),
       libdrasm::tile(m),
-      _self()
+      _self(),
+      _nodes()
 {
 }
 
@@ -257,4 +258,19 @@ tile::allocate_register(ssize_t& cycle __attribute__((unused)))
     use_register(r);
 
     return std::make_shared<libdrasm::regval>();
+}
+
+void tile::add_node(void)
+{
+    _nodes++;
+}
+
+void tile::remove_node(void)
+{
+    if (_nodes == 0) {
+        fprintf(stderr, "Removed node without any there!\n");
+        abort();
+    }
+
+    _nodes--;
 }

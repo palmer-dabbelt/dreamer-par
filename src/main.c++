@@ -20,10 +20,11 @@
  */
 
 #include "avail_mem.h++"
-#include "tile.h++"
-#include "machine.h++"
 #include "cnode.h++"
+#include "machine.h++"
 #include "operation.h++"
+#include "place.h++"
+#include "tile.h++"
 #include <libflo/flo.h++>
 
 int main(int argc, const char **argv)
@@ -58,6 +59,9 @@ int main(int argc, const char **argv)
     for (const auto& tile: m->network()->nodes())
         tiles.push_back(tile);
 
+    /* Do placement here. */
+    place(f, tiles);
+
     /* Walk through that Flo file and attempt a place-and-route every
      * Flo node by creating a number of DREAMER instructions that can
      * compute that node. */
@@ -89,6 +93,11 @@ int main(int argc, const char **argv)
                 abort();
             }
         }
+
+        /* Check if this was placed by the integrated annealing
+         * code. */
+        if (op->d()->owner() != NULL)
+            ontile = op->d()->owner();
 
         if (ontile != NULL) {
             std::stable_sort(tiles.begin(), tiles.end(),

@@ -70,7 +70,7 @@ public:
      * cycles.  This only makes sense for persistant nodes, otherwise
      * it'll probably never get allocated at all! */
     std::shared_ptr<tile> owner(void) const { return _owner; }
-    void set_owner(const std::shared_ptr<tile>& owner) { _owner = owner; }
+    void set_owner(const std::shared_ptr<tile>& owner);
 
     /* Call this when a node has been computed at a particular tile on
      * the given cycle. */

@@ -87,6 +87,15 @@ std::shared_ptr<libdrasm::regval> cnode::obtain(
     return obtained;
 }
 
+void cnode::set_owner(const std::shared_ptr<tile>& owner)
+{
+    if (_owner != NULL)
+        _owner->remove_node();
+
+    _owner = owner;
+    owner->add_node();
+}
+
 void cnode::computed_at(const std::shared_ptr<tile>& tile, ssize_t cycle)
 {
     make_availiable(std::make_shared<avail_reg>(cycle, tile));
