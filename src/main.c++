@@ -83,13 +83,11 @@ int main(int argc, const char **argv)
          * again, this time placing the node where this has been
          * placed first. */
         std::shared_ptr<tile> ontile = NULL;
-        if (op->d()->pos_known() == true) {
-            auto x = op->d()->x();
-            auto y = op->d()->y();
-            ontile = m->network()->lookup(x, y);
+        if (op->d()->posn_known() == true) {
+            ontile = m->network()->lookup(op->d()->posn());
             if (ontile == NULL) {
-                fprintf(stderr, "Placed on (%lu, %lu), but no tile\n",
-                        x, y);
+                fprintf(stderr, "Placed on '%s', but no tile\n",
+                        op->d()->posn().c_str());
                 abort();
             }
         }
