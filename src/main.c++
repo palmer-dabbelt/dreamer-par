@@ -110,7 +110,7 @@ int main(int argc, const char **argv)
          * placed first. */
         std::shared_ptr<tile> ontile = NULL;
         if (op->d()->posn_known() == true) {
-            ontile = m->network()->lookup(op->d()->posn());
+            ontile = op->d()->owner();
             if (ontile == NULL) {
                 fprintf(stderr, "Placed on '%s', but no tile\n",
                         op->d()->posn().c_str());
