@@ -49,8 +49,34 @@ int main(int argc, const char **argv)
         }
         );
 
-    /* Parse the flo file that we're going to PAR. */
-    auto f = libflo::flo<cnode, operation>::parse(argv[1]);
+    /* Parse the flo file that we're going to PAR.  This wacky
+     * function here produces an actual link to the owner tile
+     * whenever that tile */
+    auto f = libflo::flo<cnode, operation>::parse(
+        argv[1],
+        [&m](const std::string name,
+             const libflo::unknown<size_t>& width,
+             const libflo::unknown<size_t>& depth,
+             bool is_mem,
+             bool is_const,
+             libflo::unknown<size_t> dfdepth,
+             const libflo::unknown<std::string>& posn)
+        -> std::shared_ptr<cnode>
+        {
+            std::shared_ptr<tile> owner = NULL;
+            if (posn.known())
+                owner = m->network()->lookup(posn.value());
+
+            return std::make_shared<cnode>(name,
+                                           width,
+                                           depth,
+                                           is_mem,
+                                           is_const,
+                                           dfdepth,
+                                           owner
+                );
+        }
+        );
 
     /* Here we start with a list of all the possible targets on which
      * we can schedule an instruction.  These are kept in sorted order

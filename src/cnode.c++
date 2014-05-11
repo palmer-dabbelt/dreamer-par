@@ -29,10 +29,23 @@ cnode::cnode(const std::string name,
              bool is_mem,
              bool is_const,
              libflo::unknown<size_t> cycle,
-             const libflo::unknown<std::string>& posn)
-    : libflo::node(name, width, depth, is_mem, is_const, cycle, posn),
-      _avail_list()
+             std::shared_ptr<tile> owner)
+    : libflo::node(
+        name,
+        width,
+        depth,
+        is_mem,
+        is_const,
+        cycle,
+        (owner == NULL) ? libflo::unknown<std::string>() : libflo::unknown<std::string>(owner->name())
+        ),
+    _avail_list(),
+      _owner(owner)
 {
+    /* We need to keep this consistant here as otherwise when we go
+     * and remove the node the counts will be wrong. */
+    if (_owner != NULL)
+        _owner->add_node();
 }
 
 void cnode::make_availiable(const std::shared_ptr<availiability>& a)

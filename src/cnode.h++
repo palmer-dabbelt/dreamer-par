@@ -41,14 +41,14 @@ private:
     /* If anyone owns this node then this will point to that tile. */
     std::shared_ptr<tile> _owner;
 
-private:
+public:
     cnode(const std::string name,
           const libflo::unknown<size_t>& width,
           const libflo::unknown<size_t>& depth,
           bool is_mem,
           bool is_const,
           libflo::unknown<size_t> cycle,
-          const libflo::unknown<std::string>& posn);
+          std::shared_ptr<tile> owner);
 
 public:
     /* Updates the availiability listing with a new sort of
