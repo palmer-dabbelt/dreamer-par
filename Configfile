@@ -9,11 +9,28 @@ LANGUAGES   += bash
 
 GENERATE    += version.h
 
-BINARIES    += dreamer-par
+# Everything depends on libflo to read Flo files
+LANGUAGES   += c++
 COMPILEOPTS += `ppkg-config flo --cflags`
 LINKOPTS    += `ppkg-config flo --libs`
+
+# Everything depends on libdrasm for machine configuration
+LANGUAGES   += c++
 COMPILEOPTS += `ppkg-config libdrasm --cflags`
 LINKOPTS    += `ppkg-config libdrasm --libs`
+
+
+# The DREAMER placement tool: takes a Flo file as input, assigns a
+# tile to every node, and outputs a placed Flo file.
+BINARIES    += dreamer-place
+SOURCES     += main_place.c++
+
+# The DREAMER scheduler: takes a Flo file as input,
+
+BINARIES    += dreamer-route
+SOURCES     += main_route.c++
+
+BINARIES    += dreamer-par
 SOURCES     += main.c++
 TESTSRC     += DES-mesh-8x8.bash
 TESTSRC     += DES-crossbar-64.bash
