@@ -81,6 +81,7 @@ bool tile::place(const std::shared_ptr<operation>& op)
     case libflo::opcode::AND:
     case libflo::opcode::ARSH:
     case libflo::opcode::CAT:
+    case libflo::opcode::DIV:
     case libflo::opcode::OR:
     case libflo::opcode::EQ:
     case libflo::opcode::GTE:
